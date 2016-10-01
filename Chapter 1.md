@@ -23,12 +23,12 @@ We would like to introduce Gradle to you, a build system that we think is a quan
 
 * Ant tasks and builds as first class citizens.
 
-* **Groovy** build scripts.   
+* *Groovy* build scripts.   
 Groovy构建脚本
 
 * A rich domain model for describing your build.
 
-In **Chapter 2, Overview** you will find a detailed overview of Gradle. Otherwise, the tutorials are waiting, have fun :)   
+In *Chapter 2, Overview* you will find a detailed overview of Gradle. Otherwise, the tutorials are waiting, have fun :)   
 在第二章，你会看到关于Gradle的更详细的概览。
 
 ## <font color=green>1.1. About this user guide  关于本用户指南</font>
