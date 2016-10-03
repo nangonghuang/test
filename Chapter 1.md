@@ -1,6 +1,8 @@
 # Chapter 1. Introduction 第一章. 引言
 ## <font color=green>Table of Contents 目录 </font>
-### 1.1. About this user guide 关于本用户指南
+<font color=green>1.1. About this user guide 关于本用户指南</font>
+<br />
+<br />
 
 We would like to introduce Gradle to you, a build system that we think is a quantum leap for build technology in the Java (JVM) world. Gradle provides:  
 我们将会把Gradle介绍给你--一种用于Java (JVM)的构建系统，我们认为它是这个领域的构建技术的一大突破。Gradle可以提供以下内容：
