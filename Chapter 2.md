@@ -70,6 +70,6 @@ In that case, you might argue why we don't just use Java as the language for bui
 像Python, Groovy 或者 Ruby在这种情况下会更有效。我们最后选择了Groovy因为对于使用Java语言的开发者来说目前它是最直接的。它的基础语法，类型系统，包结构和其他的东西跟Java一模一样，Groovy在这之上还有更多的功能，并且和Java有相同基础结构。
 
 For Java developers with Python or Ruby knowledge or the desire to learn them, the above arguments don't apply. The Gradle design is well-suited for creating another build script engine in JRuby or Jython. It just doesn't have the highest priority for us at the moment. We happily support any community effort to create additional build script engines.   
-对于有Python 或者 Ruby基础或者想学它们的Java开发者来说，上述原因并不使用。在Gradle的设计上就很适合使用JRuby或者Jython创建一个新的构建脚本引擎，但是目前对我们来说这件事并没有最高的优先级，我们很乐意为任何想要创建新的构建脚本引擎的社区力量提供支持。
+对于有Python 或者 Ruby基础或者想学它们的Java开发者来说，上述原因并不适用。在Gradle的设计上就很适合使用JRuby或者Jython创建一个新的构建脚本引擎，但是目前对我们来说这件事并没有最高的优先级，我们很乐意为任何想要创建新的构建脚本引擎的社区力量提供支持。
     
 [1] At http://www.defmacro.org/ramblings/lisp.html you find an interesting article comparing Ant, XML, Java and Lisp. It's funny that the 'if Java had that syntax' syntax in this article is actually the Groovy syntax.
