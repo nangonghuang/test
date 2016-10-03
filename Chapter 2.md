@@ -1,4 +1,4 @@
-# chapter2.概览
+# Chapter2.概览
 ## <font color=green>Table of Contents 目录 </font>
 
 <font color=green>2.1. Features 特性</font>  
@@ -9,7 +9,7 @@ Here is a list of some of Gradle's features.
 
 **Declarative builds and build-by-convention**     
 At the heart of Gradle lies a rich extensible Domain Specific Language (DSL) based on Groovy. Gradle pushes declarative builds to the next level by providing declarative language elements that you can assemble as you like. Those elements also provide build-by-convention support for Java, Groovy, OSGi, Web and Scala projects. Even more, this declarative language is extensible. Add your own new language elements or enhance the existing ones, thus providing concise, maintainable and comprehensible builds.   
-Gradle的核心区域包含了基于Groovy的非常易于扩展的领域特定语言（DSL）。Gradle把declarative builds提高到了另一个水平，它提供了可声明的语言元素，你可以任意组合它们来进行构建。这些元素也为Java, Groovy, OSGi, Web和Scala项目提供了build-by-convention支持，甚至这种声明性的语言也是可以扩展的。添加你自己的新的语言元素或者加强已经存在的元素，通过这样子Gradle就可以提供精确的，可维护的，易理解的构建过程。
+Gradle的核心区域包含了基于Groovy的非常易于扩展的领域特定语言（DSL）。Gradle把declarative builds提高到了另一个水平，它提供了可声明的语言元素，你可以任意组合它们来进行构建。这些元素也为Java, Groovy, OSGi, Web和Scala项目提供了build-by-convention支持，甚至这种声明性的语言也是可以扩展的。添加你自己的新的语言元素或者加强已经存在的元素，通过这样Gradle就可以提供精确的，可维护的，易理解的构建过程。
 
 **Language for dependency based programming** **基于依赖来编程的语言**   
 The declarative language lies on top of a general purpose task graph, which you can fully leverage in your builds. It provides utmost flexibility to adapt Gradle to your unique needs.   
@@ -38,12 +38,12 @@ Gralde还提供了部分构建的能力。如果你仅仅是构建一个小的�
 Different teams prefer different ways to manage their external dependencies. Gradle provides convenient support for any strategy. From transitive dependency management with remote Maven and Ivy repositories to jars or directories on the local file system.   
 不同的团队会有不同的方式来管理他们的外部依赖项。Gradle对任何管理策略都提供了很方便的支持,不管是带有远程Maven和Ivy仓库的transitive dependency management还是jar包或者本地系统文件目录。   
 
-**Gradle is the first build integration tool** **Gradle是第一个构建集成工具**
+**Gradle is the first build integration tool** **Gradle是第一个构建集成工具**   
 Ant tasks are first class citizens. Even more interesting, Ant projects are first class citizens as well. Gradle provides a deep import for any Ant project, turning Ant targets into native Gradle tasks at runtime. You can depend on them from Gradle, you can enhance them from Gradle, you can even declare dependencies on Gradle tasks in your build.xml. The same integration is provided for properties, paths, etc ...   
 Ant任务是第一关注对象，Ant项目也是。Gradle提供了对任何Ant项目的深度导入方法，在运行时把Ant目标转换成原生的Gradle任务。你可以通过Gradle来依赖它们或者改善他们，你甚至可以在你的build.xml文件里面直接声明依赖Gradle任务，对于properties，paths等我们也做了同样的集成。
 
 Gradle fully supports your existing Maven or Ivy repository infrastructure for publishing and retrieving dependencies. Gradle also provides a converter for turning a Maven pom.xml into a Gradle script. Runtime imports of Maven projects will come soon.   
-Gradle完全支持用于发布或者获取依赖库的已有的Maven or Ivy仓库。Gradle还提供了一个转换工具，可以把Maven pom.xml转化成Gradle脚本文件。对于Maven项目的运行时导入功能也将会马上提供。
+Gradle完全支持用于发布或者获取依赖库的已有的Maven或者Ivy仓库。Gradle还提供了一个转换工具，可以把Maven pom.xml转化成Gradle脚本文件。对于Maven项目的运行时导入功能也将会马上提供。
 
 **Ease of migration** **方便转移**   
 Gradle can adapt to any structure you have. Therefore you can always develop your Gradle build in the same branch where your production build lives and both can evolve in parallel. We usually recommend to write tests that make sure that the produced artifacts are similar. That way migration is as less disruptive and as reliable as possible. This is following the best-practices for refactoring by applying baby steps.   
