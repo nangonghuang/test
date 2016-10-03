@@ -61,12 +61,15 @@ Gradle Wrapper允许你在没有安装Gradle的机器上执行Gradle构建过程
 Gradle is an open source project, and is licensed under the ASL.   
 Gradle是一个开源软件，它遵循ASL协议。
 
-2.2. Why Groovy?
-We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous when used in build scripts. There are a couple of dynamic languages out there. Why Groovy? The answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its core, its main focus are Java projects. In such projects the team members will be very familiar with Java. We think a build should be as transparent as possible to all team members.
+## <font color=green>2.2. Why Groovy? 为什么会选择Groovy</font>    
+We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous when used in build scripts. There are a couple of dynamic languages out there. Why Groovy? The answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its core, its main focus are Java projects. In such projects the team members will be very familiar with Java. We think a build should be as transparent as possible to all team members.   
+我们认为在构建脚本的时候，内置一个DSL（基于动态语言）和使用xml相比有着巨大的优势。但是现在已经有很多的动态语言了，为什么会选择Groovy呢?这是Gradle的运行环境所决定的。虽然Gradle本质上是一个通用的构建工具，但它主要关注的还是Java项目，这种项目的团队成员肯定都很熟悉Java，我们觉得一个构建系统应该对所有的团队成员尽可能的透明，清晰。
 
-In that case, you might argue why we don't just use Java as the language for build scripts. We think this is a valid question. It would have the highest transparency for your team and the lowest learning curve, but because of the limitations of Java, such a build language would not be as nice, expressive and powerful as it could be. [1] Languages like Python, Groovy or Ruby do a much better job here. We have chosen Groovy as it offers by far the greatest transparency for Java people. Its base syntax is the same as Java's as well as its type system, its package structure and other things. Groovy provides much more on top of that, but with the common foundation of Java.
+In that case, you might argue why we don't just use Java as the language for build scripts. We think this is a valid question. It would have the highest transparency for your team and the lowest learning curve, but because of the limitations of Java, such a build language would not be as nice, expressive and powerful as it could be. [1] Languages like Python, Groovy or Ruby do a much better job here. We have chosen Groovy as it offers by far the greatest transparency for Java people. Its base syntax is the same as Java's as well as its type system, its package structure and other things. Groovy provides much more on top of that, but with the common foundation of Java.   
+在这种情况下，你可能说为什么我们为什么不直接使用java语言来写编译脚本。这是一个有效的问题，这样做对团队成员来说最透明并且需要的学习成本最低，但是因为Java语言的限制，这样做并不会使Gradle尽可能的nice, expressive and powerful。[1]   
+像Python, Groovy 或者 Ruby在这种情况下会更有效。我们最后选择了Groovy因为对于使用Java语言的开发者来说目前它是最直接的。它的基础语法，类型系统，包结构和其他的东西跟Java一模一样，Groovy在这之上还有更多的功能，并且和Java有相同基础结构。
 
-For Java developers with Python or Ruby knowledge or the desire to learn them, the above arguments don't apply. The Gradle design is well-suited for creating another build script engine in JRuby or Jython. It just doesn't have the highest priority for us at the moment. We happily support any community effort to create additional build script engines.
-
-
+For Java developers with Python or Ruby knowledge or the desire to learn them, the above arguments don't apply. The Gradle design is well-suited for creating another build script engine in JRuby or Jython. It just doesn't have the highest priority for us at the moment. We happily support any community effort to create additional build script engines.   
+对于有Python 或者 Ruby基础或者想学它们的Java开发者来说，上述原因并不使用。在Gradle的设计上就很适合使用JRuby或者Jython创建一个新的构建脚本引擎，但是目前对我们来说这件事并没有最高的优先级，我们很乐意为任何想要创建新的构建脚本引擎的社区力量提供支持。
+    
 [1] At http://www.defmacro.org/ramblings/lisp.html you find an interesting article comparing Ant, XML, Java and Lisp. It's funny that the 'if Java had that syntax' syntax in this article is actually the Groovy syntax.
