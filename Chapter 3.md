@@ -8,6 +8,9 @@ Table of Contents
 3.5. Running and testing your installation
 3.6. JVM options
 
+* [3.1.Prerequisites](#3.1.Prerequisites)
+* 3.2. [Download](#Download)
+
 ## 3.1.Prerequisites
 
 Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use java -version). Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
