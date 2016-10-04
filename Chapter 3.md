@@ -9,7 +9,7 @@ Table of Contents
 3.6. JVM options
 
 * [3.1.Prerequisites](#3.1.prerequisites)
-* 3.2. [Download](#download)
+* [3.2.Download](#download)
 * [Environment variables](#environment-variables)
 * [Download](#download)
 * [横线](#横线)
