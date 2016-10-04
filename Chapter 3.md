@@ -2,7 +2,8 @@ Chapter 3. Installing Gradle
 Table of Contents
 
 [3.1.Prerequisites](#3.1.prerequisites)
-3.2. [Download](#download)
+[3.2. Download](#download)
+[横线](#横线)
 3.3. [Unpacking](#jump)
 3.4. [Environment variables](#environment-variables)
 3.5. Running and testing your installation
