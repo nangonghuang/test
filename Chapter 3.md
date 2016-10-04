@@ -31,7 +31,7 @@ Gradle的发行版已经打包成了zip格式，完整的安装包包括：
 
 Extensive samples, including the examples referenced in the user guide, along with some complete and more complex builds you can use as a starting point for your own build.
 The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution or checkout the sources from the source repository. See the Gradle web site for details.  
-扩展示例，包括用户指南里面的实力代码，有一些已经构建完成的样品你可以用来作为你自己构建的起点。二进制的源码仅仅用来引用，如果你想自己编译Gradle你需要自己去下载源码或者从仓库检出源码。在官网上有更详细的说明。
+扩展示例，包括用户指南里面的示例代码，有一些已经构建完成的样品你可以用来作为你自己构建的起点。二进制的源码仅仅用来引用，如果你想自己编译Gradle你需要自己去下载源码或者从仓库检出源码。在官网上有更详细的说明。
 
 ## Environment variables 设置环境变量
 For running Gradle, firstly add the environment variable GRADLE_HOME. This should point to the unpacked files from the Gradle website. Next add GRADLE_HOME/bin to your PATH environment variable. Usually, this is sufficient to run Gradle.  
