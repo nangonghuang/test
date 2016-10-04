@@ -1,12 +1,12 @@
 # Chapter 3. Installing Gradle 第三章 安装Gradle
 ## Table of Contents 目录
 
-* [3.1.Prerequisites 运行要求](#prerequisites)
-* [3.2.Download 下载](#download)
-* [3.3.Unpacking 解压](#unpacking)
-* [3.4.Environment variables 设置环境变量](#environment-variables)
-* [3.5.Running and testing your installation 运行并测试](#running-and-testing-your-installation)
-* [3.6.JVM options JVM 选项](#jvm-options)
+* [3.1.Prerequisites 运行要求](#prerequisites-运行要求)
+* [3.2.Download 下载](#download-下载)
+* [3.3.Unpacking 解压](#unpacking-解压)
+* [3.4.Environment variables 设置环境变量](#environment-variables-设置环境变量)
+* [3.5.Running and testing your installation 运行并测试](#running-and-testing-your-installation-运行并测试)
+* [3.6.JVM options JVM 选项](#jvm-options-jvm选项)
 
 ## Prerequisites 运行要求
 
