@@ -18,8 +18,6 @@ Table of Contents
 ## Environment-variables
 Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use java -version). Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
 
-横线
-
 Gradle uses whatever JDK it finds in your path. Alternatively, you can set the JAVA_HOME environment variable to point to the installation directory of the desired JDK.
 ## Download
 ## 3.2. Download
@@ -27,7 +25,7 @@ You can download one of the Gradle distributions from the Gradle web site.
 ## Environment variables
 ## <span id="jump">3.3. Unpacking</span>
 The Gradle distribution comes packaged as a ZIP. The full distribution contains:
-
+## 横线
 The Gradle binaries.
 The user guide (HTML and PDF).
 The DSL reference guide.
