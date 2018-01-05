@@ -1,7 +1,7 @@
-# Gradle User Guide v3.1
+# Gradle User Guide 
 
 
-> 注:这里是用于熟悉git,Gradle和markdown的项目，随时可能弃坑   
+> 注:这里是用于熟悉git,Gradle和markdown的项目 
 
 
 

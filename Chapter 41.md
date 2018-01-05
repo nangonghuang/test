@@ -11,7 +11,7 @@
 4. [在自定义插件或者任务的文件中工作](#在自定义插件或者任务的文件中工作)
 5. [适配扩展属性到任务属性](#适配扩展属性到任务属性)
 6. [在独立项目中使用](#在独立项目中使用)
-7. [为插件提供DSL配置]
+7. [为插件提供DSL配置](#为插件提供DSL配置)
 
 
 ## 创建插件
@@ -299,14 +299,14 @@ implementation-class=org.gradle.GreetingPlugin
 如果你要在你的组织内部使用插件，你可以像其他代码集合一样发布它，查看ivy 和 maven 章节获得更多关于发布集合的信息。
 入宫你想要把你的插件发布到更广泛的Gradle社区，你可以把它发布到[Gradle plugin portal](https://plugins.gradle.org/)。这个网站提供了搜索和收集关于Gradle社区贡献的插件信息的能力。你可以在[这里](https://plugins.gradle.org/docs/submit)找到关于怎么使你的插件在该网站可用的信息。
 
-41.6.3. Using your plugin in another project
+### 41.6.3. 在别的项目里使用你的插件
 
-To use a plugin in a build script, you need to add the plugin classes to the build script’s classpath. To do this, you use a “buildscript { }” block, as described in the section called “Applying plugins with the buildscript block”. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
+为了在build脚本里面使用插件，你需要添加插件类到build脚本的classpath路径。你可以像在“Applying plugins with the buildscript block”这一节里面描述的那样使用一个"buildscript { }"块。下面的例子展示了在包含插件的JAR发布到了本地repository的时候，你怎么去使用它
 
-Example 41.8. Using a custom plugin in another project
+*Example 41.8. Using a custom plugin in another project*
 
 build.gradle
-
+~~~Groovy
 buildscript {
     repositories {
         maven {
@@ -319,25 +319,27 @@ buildscript {
     }
 }
 apply plugin: 'org.samples.greeting'
+~~~
 
-Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see Section 27.5.2, “Applying plugins with the plugins DSL”) to apply the plugin:
+或者，如果你的插件发布到了 plugin portal 网站上面，你可以使用插件DSL来应用它
 
-Example 41.9. Applying a community plugin with the plugins DSL
+*Example 41.9. Applying a community plugin with the plugins DSL*
 
 build.gradle
-
+~~~
 plugins {
     id 'com.jfrog.bintray' version '0.4.1'
 }
+~~~
 
-41.6.4. Writing tests for your plugin
+### 41.6.4. 为你的插件编写测试代码
 
-You can use the ProjectBuilder class to create Project instances to use when you test your plugin implementation.
+当你测试你的插件实现的时候， 你可以使用ProjectBuilder类来创建插件实体。
 
-Example 41.10. Testing a custom plugin
+*Example 41.10. Testing a custom plugin*
 
 src/test/groovy/org/gradle/GreetingPluginTest.groovy
-
+~~~Groovy
 class GreetingPluginTest {
     @Test
     public void greeterPluginAddsGreetingTaskToProject() {
@@ -347,17 +349,140 @@ class GreetingPluginTest {
         assertTrue(project.tasks.hello instanceof GreetingTask)
     }
 }
+~~~
+### 41.6.5. 使用Java Gradle Plugin development plugin
 
-41.6.5. Using the Java Gradle Plugin development plugin
+你可以使用开发中的Java Gradle Plugin development plugin来消除build脚本里面一些模板化的声明，它还提供了插件元数据的一些基本验证。这个插件会自动应用Java插件，添加gradleApi()依赖到编译配置里，就可以执行插件元数据的验证作为执行jar任务的一部分了。
 
-You can use the incubating Java Gradle Plugin development plugin to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the Java plugin, add the gradleApi() dependency to the compile configuration, and perform plugin metadata validations as part of the jar task execution.
-
-Example 41.11. Using the Java Gradle Plugin Development plugin
+*Example 41.11. Using the Java Gradle Plugin Development plugin*
 
 build.gradle
-
+~~~Groovy
 plugins {
     id 'java-gradle-plugin'
 }
+~~~
+当发布插件到自定义的插件ivy repositories或者maven resositories时，Java Gradle Plugin development plugin也会生成基于插件id和插件实现的产出生成plugin marker artifacts。
 
-When publishing plugins to custom plugin repositories using the ivy or maven publish plugins, the Java Gradle Plugin development plugin will also generate plugin marker artifacts named based on the plugin id which depend on the plugin’s implementation artifact.
+
+## 为插件提供一个DSL配置
+
+正如我们在上面所看到的，你可以使用一个extension对象来为你的插件提供配置功能。使用extension对象也扩展了DSL，使它可以为插件增加项目属性和DSL代码块。一个extension对象就是一个普通的对象，通过为它添加
+属性和方法你可以提供DSL元素和内部代码块
+
+### 41.7.1. DSL内部代码块
+
+当Gradle创建了一个任务或者extension对象的时候，Gradle装饰了它的实现来提供DSL支持。为了创建一个DSL内部块，你可以使用ObjectFactory类型来创建类似装饰过的对象。通过插件的extension对象的属性和方法，这些装饰过的对象对DSL可见。
+
+*Example 41.12. Nested DSL elements*
+
+build.gradle
+~~~Groovy
+class Person {
+    String name
+}
+
+class GreetingPluginExtension {
+    String message
+    final Person greeter
+
+    @javax.inject.Inject
+    GreetingPluginExtension(ObjectFactory objectFactory) {
+        // Create a Person instance
+        greeter = objectFactory.newInstance(Person)
+    }
+
+    void greeter(Action<? super Person> action) {
+        action.execute(greeter)
+    }
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Create the extension, passing in an ObjectFactory for it to use
+        def extension = project.extensions.create('greeting', GreetingPluginExtension, project.objects)
+        project.task('hello') {
+            doLast {
+                println "${extension.message} from ${extension.greeter.name}"
+            }
+        }
+    }
+}
+
+apply plugin: GreetingPlugin
+
+greeting {
+    message = 'Hi'
+    greeter {
+        name = 'Gradle'
+    }
+}
+~~~
+Output of gradle -q hello
+
+> gradle -q hello
+Hi from Gradle
+
+在这个例子里，插件通过extension的构造函数传递了Project的一个ObjectFactory对象给它，这个构造函数用它创造了一个内部对象，并且使它可以通过greeter的属性，由DSL来设置。
+
+
+### 41.7.2. 配置对象的集合
+
+Gradle提供了一些实用类用来维持对象集合，使她们和Gradle DSL协调工作
+
+*Example 41.13. Managing a collection of objects*
+
+build.gradle
+~~~Groovy
+class Book {
+    final String name
+    File sourceFile
+
+    Book(String name) {
+        this.name = name
+    }
+}
+
+class DocumentationPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Create a container of Book instances
+        def books = project.container(Book)
+        books.all {
+            sourceFile = project.file("src/docs/$name")
+        }
+        // Add the container as an extension object
+        project.extensions.books = books
+    }
+}
+
+apply plugin: DocumentationPlugin
+
+// Configure the container
+books {
+    quickStart {
+        sourceFile = file('src/docs/quick-start')
+    }
+    userGuide {
+
+    }
+    developerGuide {
+
+    }
+}
+
+task books {
+    doLast {
+        books.each { book ->
+            println "$book.name -> $book.sourceFile"
+        }
+    }
+}
+~~~
+Output of gradle -q books
+
+> gradle -q books
+developerGuide -> /home/user/gradle/samples/userguide/organizeBuildLogic/customPluginWithDomainObjectContainer/src/docs/developerGuide
+quickStart -> /home/user/gradle/samples/userguide/organizeBuildLogic/customPluginWithDomainObjectContainer/src/docs/quick-start
+userGuide -> /home/user/gradle/samples/userguide/organizeBuildLogic/customPluginWithDomainObjectContainer/src/docs/userGuide
+
+Project.container(java.lang.Class)方法构造了一些NamedDomainObjectContainer实体，它们包含管理和配置对象的许多有用的方法，为了使用包含某个类型的project.container的方法，它必须暴露一个叫做name的属性作为唯一的，不变的名字。project.container(Class)包含了许多创造对象的方法，通过一个String参数来构造它们，也就是对象的类名。project.container方法允许自定义初始化的策略，你可以查看上面的链接获得相关信息。
