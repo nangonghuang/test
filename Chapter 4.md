@@ -4,15 +4,15 @@
 
 ## Table of Contents
 
-* 4.1. [执行多项任务](#执行多项任务)
-* 4.2. Excluding tasks
-* 4.3. Continuing the build when a failure occurs
-* 4.4. Task name abbreviation
-* 4.5. Selecting which build to execute
-* 4.6. Forcing tasks to execute
-* 4.7. Obtaining information about your build
-* 4.8. Dry Run
-* 4.9. Summary
+* [4.1. 执行多项任务](#执行多项任务)
+* [4.2. 排除任务](#排除任务)
+* [4.3.在失败发生的时候依然继续执行](#在失败发生的时候依然继续执行)
+* [4.4.任务名字缩写](#任务名字缩写)
+* [4.5. 选择执行哪个构建脚本](#选择执行哪个构建脚本)
+* [4.6.强制任务执行](#强制任务执行)
+* [4.7. 获取你的构建信息](#获取你的构建信息)
+* [4.8. Dry Run模式](#Dry-Run模式)
+* [4.9. 总结](#总结)
 
 这一章介绍Gradle命令行的一些基本用法。在前面的章节你已经有见到，使用gradle命令行来执行一次构建的过程。
 
@@ -140,66 +140,66 @@ BUILD SUCCESSFUL in 0s
 
 你也可以在-x选项里面使用这种缩写。
 
-4.5. Selecting which build to execute
 
-When you run the gradle command, it looks for a build file in the current directory. You can use the -b option to select another build file. Example:
+### 选择执行哪个构建脚本
+当你执行gradle命令的时候，它会去找当前目录下的build脚本去执行。你也可以使用-b选项来选择执行另外一个Build脚本。
 
 Example 4.5. Selecting the project using a build file
 
 subdir/myproject.gradle
-
+~~~groovy
 task hello {
     doLast {
         println "using build file '$buildFile.name' in '$buildFile.parentFile.name'."
     }
 }
-
+~~~
 Output of gradle -q -b subdir/myproject.gradle hello
-
+~~~
 > gradle -q -b subdir/myproject.gradle hello
 using build file 'myproject.gradle' in 'subdir'.
-
-Alternatively, you can use the -p option to specify the project directory to use. For multi-project builds you should use -p option instead of -b option.
+~~~
+另外，你可以使用-p选项来指定使用的项目目录，对于多模块项目你的构建你应该使用-p而不是-b选项。
 
 Example 4.6. Selecting the project using project directory
 
 Output of gradle -q -p subdir hello
-
+~~~
 > gradle -q -p subdir hello
 using build file 'build.gradle' in 'subdir'.
-
+~~~
+### 强制任务执行
 4.6. Forcing tasks to execute
-
-Many tasks, particularly those provided by Gradle itself, support incremental builds. Such tasks can determine whether they need to run or not based on whether their inputs or outputs have changed since the last time they ran. You can easily identify tasks that take part in incremental build when Gradle displays the text UP-TO-DATE next to their name during a build run.
-
-You may on occasion want to force Gradle to run all the tasks, ignoring any up-to-date checks. If that’s the case, simply use the --rerun-tasks option. Here’s the output when running a task both without and with --rerun-tasks:
+许多任务都支持增量构建，尤其是gradle自己提供的。根据上次构建以来它们的输入或者输出是否有变化，这些任务可以决定自己是不是要执行。当Gradle在任务附近显示UP-TO-DATE的时候你可以轻松指定任务参与增量构建。
+你可能会想要Gradle强制执行所有任务的情况，不管是不是有任何up-to-data检查。使用--rerun-tasks选项就可以轻松满足你。这里是一个使用和不使用--rerun-tasks选项的例子
 
 Example 4.7. Forcing tasks to run
 
 Output of gradle doIt
-
+~~~
 > gradle doIt
 :doIt UP-TO-DATE
-
+~~~
 Output of gradle --rerun-tasks doIt
-
+~~~
 > gradle --rerun-tasks doIt
 :doIt
+~~~
+需要注意的是这会强制执行所有需要的任务，而不只是你命令行里指定的那个任务。它有点像执行一个clean，但是不会删除产生的输出。
 
-Note that this will force all required tasks to execute, not just the ones you specify on the command line. It’s a little like running a clean, but without the build’s generated output being deleted.
-4.7. Obtaining information about your build
+### 获取你的构建信息
+Gradle提供了几个内建任务用来显示你的构建细节。这对于调试问题，理解项目结构和依赖将会很有帮助。
 
-Gradle provides several built-in tasks which show particular details of your build. This can be useful for understanding the structure and dependencies of your build, and for debugging problems.
+除了下面显示的几个内建任务以外，你还可以使用项目报告插件来把可以产生这些报告的任务加到你的项目里面去。
 
-In addition to the built-in tasks shown below, you can also use the project report plugin to add tasks to your project which will generate these reports.
 4.7.1. Listing projects
 
-Running gradle projects gives you a list of the sub-projects of the selected project, displayed in a hierarchy. Here is an example:
+执行gradle projects会通过层次树来显示所选的项目的子项目列表，这里是一个例子：
 
 Example 4.8. Obtaining information about projects
 
 Output of gradle -q projects
-
+~~~
 > gradle -q projects
 
 ------------------------------------------------------------
@@ -209,26 +209,23 @@ Root project
 Root project 'projectReports'
 +--- Project ':api' - The shared API for the application
 \--- Project ':webapp' - The Web application implementation
-
-To see a list of the tasks of a project, run gradle <project-path>:tasks
-For example, try running gradle :api:tasks
-
-The report shows the description of each project, if specified. You can provide a description for a project by setting the description property:
+~~~
+想要看一个项目的tasks列表，执行gradle <project-path>:tasks命令，比如，执行gradle :api:tasks报告会显示所有的项目描述信息，你可以设置描述信息属性的值。
 
 Example 4.9. Providing a description for a project
 
 build.gradle
-
+~~~
 description = 'The shared API for the application'
-
+~~~
+### 显示任务列表
 4.7.2. Listing tasks
-
-Running gradle tasks gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task. Below is an example of this report:
+执行gradle tasks任务会显示所选项目的主要任务列表。这些报告会显示项目的默认任务，如果有描述信息的话也会显示出来。
 
 Example 4.10. Obtaining information about tasks
 
 Output of gradle -q tasks
-
+~~~
 > gradle -q tasks
 
 ------------------------------------------------------------
@@ -264,24 +261,25 @@ tasks - Displays the tasks runnable from root project 'projectReports' (some of 
 To see all tasks and more detail, run gradle tasks --all
 
 To see more detail about a task, run gradle help --task <task>
-
-By default, this report shows only those tasks which have been assigned to a task group, so-called visible tasks. You can do this by setting the group property for the task. You can also set the description property, to provide a description to be included in the report.
+~~~
+默认情况下，这个报告只会显示付赋值到一个任务组里的任务，我们称为可见任务。你可以通过设置任务的group属性来做到这些，你可以可以设置description属性，这样在报告里面就会显示它们
 
 Example 4.11. Changing the content of the task report
 
 build.gradle
-
+~~~
 dists {
     description = 'Builds the distribution'
     group = 'build'
 }
-
-You can obtain more information in the task listing using the --all option. With this option, the task report lists all tasks in the project, including tasks which have not been assigned to a task group, so-called hidden tasks. Here is an example:
+~~~~
+你可以使用--all选项来获得更多任务信息。指定此选项的时候，task报告会显示项目里面所有的任务，包括没有赋值到任务组里的任务，我们称这种为隐藏任务。
 
 Example 4.12. Obtaining more information about tasks
 
 Output of gradle -q tasks --all
 
+~~~
 > gradle -q tasks --all
 
 ------------------------------------------------------------
@@ -342,15 +340,17 @@ Other tasks
 api:compile - Compiles the source files
 webapp:compile - Compiles the source files
 docs - Builds the documentation
+~~~
 
+### 显示任务使用细节
 4.7.3. Show task usage details
 
-Running gradle help --task someTask gives you detailed information about a specific task or multiple tasks matching the given task name in your multi-project build. Below is an example of this detailed information:
+执行gradle help --task <someTask>会显示你的多项目构建里匹配你所指定的任务或者多任务的细节信息。下面是一个例子：
 
 Example 4.13. Obtaining detailed help for tasks
 
 Output of gradle -q help --task libs
-
+~~~
 > gradle -q help --task libs
 Detailed task information for libs
 
@@ -366,16 +366,17 @@ Description
 
 Group
      build
+~~~
+这里的信息包括了任务完整路径，类型，可能的命令行选项和指定任务的描述信息
 
-This information includes the full task path, the task type, possible command line options and the description of the given task.
-4.7.4. Listing project dependencies
-
-Running gradle dependencies gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
+### 显示项目依赖
+执行gradle dependencies会列出项目的依赖列表。对于每一个配置，直接的和透明的依赖都会显示在一个树状结构里面，下面是一个例子：
 
 Example 4.14. Obtaining information about dependencies
 
 Output of gradle -q dependencies api:dependencies webapp:dependencies
 
+~~~
 > gradle -q dependencies api:dependencies webapp:dependencies
 
 ------------------------------------------------------------
@@ -406,13 +407,15 @@ compile
 
 testCompile
 No dependencies
+~~~
 
-Since a dependency report can get large, it can be useful to restrict the report to a particular configuration. This is achieved with the optional --configuration parameter:
+
+因为依赖报告可能会很大，严格限制指定显示某个配置将会很有用，你可以通过--configuration选项来实现这个目的。
 
 Example 4.15. Filtering dependency report by configuration
 
 Output of gradle -q api:dependencies --configuration testCompile
-
+~~~
 > gradle -q api:dependencies --configuration testCompile
 
 ------------------------------------------------------------
@@ -422,34 +425,38 @@ Project :api - The shared API for the application
 testCompile
 \--- junit:junit:4.12
      \--- org.hamcrest:hamcrest-core:1.3
+~~~
 
-4.7.5. Listing project buildscript dependencies
+### 显示项目build脚本的依赖
 
-Running gradle buildEnvironment visualises the buildscript dependencies of the selected project, similarly to how gradle dependencies visualises the dependencies of the software being built.
-4.7.6. Getting the insight into a particular dependency
+执行 gradle buildEnvironment 会显示象奴的build脚本的依赖，显示方式和gradle dependencies类似
 
-Running gradle dependencyInsight gives you an insight into a particular dependency (or dependencies) that match specified input. Below is an example of this report:
+### 获取特定依赖的insight信息
+
+执行gradle denpendencyInsight会显示匹配特定输入的依赖的insight信息。下面是一个例子：
 
 Example 4.16. Getting the insight into a particular dependency
 
 Output of gradle -q webapp:dependencyInsight --dependency groovy --configuration compile
-
+~~~
 > gradle -q webapp:dependencyInsight --dependency groovy --configuration compile
 org.codehaus.groovy:groovy-all:2.4.10
 \--- project :api
      \--- compile
+~~~
+这个任务对于深究依赖信息特别有用，尤其是找到某个依赖是怎么来的和为什么选择了这个版本。更多的信息请查看API文档里面的DependencyInsightReportTask类
 
-This task is extremely useful for investigating the dependency resolution, finding out where certain dependencies are coming from and why certain versions are selected. For more information please see the DependencyInsightReportTask class in the API documentation.
+这个内置的dependencyInsight任务是Help任务组的一部分。这个任务需要先配置依赖信息和配置信息。这个报告会寻找在特定配置里面匹配指定依赖的依赖项。如果涉及到Java香港的插件的话，dependencyInsight任务是事先通过complile任务的配置配置好的，因为通常来说我们感兴趣的都是编译依赖。你应该通过命令行 --dependency来指定你感兴趣的依赖项。如果你不喜欢默认的你可以通过--configuration来指定配置。更多信息请查看APiece文档里面的DependencyInsightReportTask类
 
-The built-in dependencyInsight task is a part of the 'Help' tasks group. The task needs to be configured with the dependency and the configuration. The report looks for the dependencies that match the specified dependency spec in the specified configuration. If Java related plugins are applied, the dependencyInsight task is pre-configured with the 'compile' configuration because typically it’s the compile dependencies we are interested in. You should specify the dependency you are interested in via the command line '--dependency' option. If you don’t like the defaults you may select the configuration via the '--configuration' option. For more information see the DependencyInsightReportTask class in the API documentation.
-4.7.7. Listing project properties
 
-Running gradle properties gives you a list of the properties of the selected project. This is a snippet from the output:
+### 列出项目属性
+
+执行gradle properties会显示项目的属性列表。下面是输出信息的一部分内容：
 
 Example 4.17. Information about properties
 
 Output of gradle -q api:properties
-
+~~~
 > gradle -q api:properties
 
 ------------------------------------------------------------
@@ -464,18 +471,20 @@ asDynamicObject: DynamicObject for project ':api'
 baseClassLoaderScope: org.gradle.api.internal.initialization.DefaultClassLoaderScope@12345
 buildDir: /home/user/gradle/samples/userguide/tutorial/projectReports/api/build
 buildFile: /home/user/gradle/samples/userguide/tutorial/projectReports/api/build.gradle
+~~~
 
-4.7.8. Profiling a build
+### 构建的性能分析
 
-The --profile command line option will record some useful timing information while your build is running and write a report to the build/reports/profile directory. The report will be named using the time when the build was run.
+当你执行构建任务的时候，--profile命令行选项会记录一些有用的时间信息，并且在build/reports/profile目录下生成一个报告。这个报告会使用构建的启动时间命名。
 
-This report lists summary times and details for both the configuration phase and task execution. The times for configuration and task execution are sorted with the most expensive operations first. The task execution results also indicate if any tasks were skipped (and the reason) or if tasks that were not skipped did no work.
+这个报告列出了configuration phase和任务执行的时间和细节。时间方面按照最耗时的操作来进行排序。任务执行结果也会显示是否有任务跳过以及跳过原因或者是否有不能正常工作的任务。
 
-Builds which utilize a buildSrc directory will generate a second profile report for buildSrc in the buildSrc/build directory.
-Profile
-4.8. Dry Run
+使用buildSrc目录的构建将会在buildSrc/build目录下产生另外一个profile报告。
 
-Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the command line, but you don’t want the tasks to be executed. You can use the -m option for this. For example, if you run “gradle -m clean compile”, you’ll see all the tasks that would be executed as part of the clean and compile tasks. This is complementary to the tasks task, which shows you the tasks which are available for execution.
-4.9. Summary
+### Dry Run模式
 
-In this chapter, you have seen some of the things you can do with Gradle from the command-line. You can find out more about the gradle command in Appendix D, Gradle Command Line.
+有时候你会对命令行里面指定的任务集的执行顺序感兴趣，但是你不想它们真的执行。你可以使用-m选项。比如，如果你执行gradle -m clean compile命令，你将会看到clean和compile任务的所有子任务。这是对于任务集里的任务的补充，它会显示有哪些子任务是可以执行的。
+
+### 总结
+
+在这一章，你看到了可以使用命令行执行的一些gradle任务。你可以在附录D，Gradle命令行 里面看到更多的gradle命令
