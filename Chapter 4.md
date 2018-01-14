@@ -428,7 +428,7 @@ testCompile
 
 ### 显示项目build脚本的依赖
 
-执行 gradle buildEnvironment 会显示象奴的build脚本的依赖，显示方式和gradle dependencies类似
+执行 gradle buildEnvironment 会显示项目的build脚本的依赖，显示方式和gradle dependencies类似
 
 ### 获取特定依赖的insight信息
 
