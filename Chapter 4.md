@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-* [4.1. 执行多项任务](#执行多项任务)
-* [4.2. 排除任务](#排除任务)
+* [4.1.执行多项任务](#执行多项任务)
+* [4.2.排除任务](#排除任务)
 * [4.3.在失败发生的时候依然继续执行](#在失败发生的时候依然继续执行)
 * [4.4.任务名字缩写](#任务名字缩写)
-* [4.5. 选择执行哪个构建脚本](#选择执行哪个构建脚本)
+* [4.5.选择执行哪个构建脚本](#选择执行哪个构建脚本)
 * [4.6.强制任务执行](#强制任务执行)
-* [4.7. 获取你的构建信息](#获取你的构建信息)
-* [4.8. Dry Run模式](#Dry-Run模式)
-* [4.9. 总结](#总结)
+* [4.7.获取你的构建信息](#获取你的构建信息)
+* [4.8.Dry Run模式](#dry-run模式)
+* [4.9.总结](#总结)
+
 
 这一章介绍Gradle命令行的一些基本用法。在前面的章节你已经有见到，使用gradle命令行来执行一次构建的过程。
 
@@ -169,7 +170,6 @@ Output of gradle -q -p subdir hello
 using build file 'build.gradle' in 'subdir'.
 ~~~
 ### 强制任务执行
-4.6. Forcing tasks to execute
 许多任务都支持增量构建，尤其是gradle自己提供的。根据上次构建以来它们的输入或者输出是否有变化，这些任务可以决定自己是不是要执行。当Gradle在任务附近显示UP-TO-DATE的时候你可以轻松指定任务参与增量构建。
 你可能会想要Gradle强制执行所有任务的情况，不管是不是有任何up-to-data检查。使用--rerun-tasks选项就可以轻松满足你。这里是一个使用和不使用--rerun-tasks选项的例子
 
@@ -192,7 +192,7 @@ Gradle提供了几个内建任务用来显示你的构建细节。这对于调�
 
 除了下面显示的几个内建任务以外，你还可以使用项目报告插件来把可以产生这些报告的任务加到你的项目里面去。
 
-4.7.1. Listing projects
+#### 显示项目信息
 
 执行gradle projects会通过层次树来显示所选的项目的子项目列表，这里是一个例子：
 
@@ -218,8 +218,8 @@ build.gradle
 ~~~
 description = 'The shared API for the application'
 ~~~
-### 显示任务列表
-4.7.2. Listing tasks
+#### 显示任务列表
+
 执行gradle tasks任务会显示所选项目的主要任务列表。这些报告会显示项目的默认任务，如果有描述信息的话也会显示出来。
 
 Example 4.10. Obtaining information about tasks
@@ -342,8 +342,7 @@ webapp:compile - Compiles the source files
 docs - Builds the documentation
 ~~~
 
-### 显示任务使用细节
-4.7.3. Show task usage details
+#### 显示任务使用细节
 
 执行gradle help --task <someTask>会显示你的多项目构建里匹配你所指定的任务或者多任务的细节信息。下面是一个例子：
 
