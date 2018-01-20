@@ -23,7 +23,6 @@ Gradle Wrapper（后面简称为Wrapper)就是用来解决这种问题的，而�
 ~~~
 
 每个Wrapper都和一个特定版本的Gradle绑定了，因此当你第一次运行上面的命令时，它会下载对应的Gradle发行版并且用它来执行构建任务。
-Each Wrapper is tied to a specific version of Gradle, so when you first run one of the commands above for a given Gradle version, it will download the corresponding Gradle distribution and use it to execute the build.
 > IDEs   
 > 通过Wrapper导入一个gradle项目的时候，你的IDE可能会请求使用Gradle的'all'发行版，这样做挺好的，并且可以帮助IDE为build脚本提供代码提示功能
 
