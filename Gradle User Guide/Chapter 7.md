@@ -60,7 +60,7 @@ Gradle守护进程是默认允许的，而且我们也推荐一直允许它。�
 注意一旦守护进程开启了，你的所有构建都可以利用它来进行加速，跟构建使用的gradle版本没有关系。
 
 > 持续集成   
-从Gradle3.0开始，我们默认允许守护进程并且推荐开发着机器和持续集成服务器都使用它。不过如果你怀疑守护进行会使你的CI构建不稳定，你可以禁止它，这样每次构建会使用全新的运行时，因为每次运行都完全和之前的构建无关
+从Gradle3.0开始，我们默认允许守护进程并且推荐开发者机器和持续集成服务器都使用它。不过如果你怀疑守护进行会使你的CI构建不稳定，你可以禁止它，这样每次构建会使用全新的运行时，因为每次运行都完全和之前的构建无关
 
 ### 7.4. 停止已经存在的守护进程
 我们提到，守护进程是一个后台进程，你不需要关心你的机器上gradle进程的创建过程。每一个守护进程都会监视自己的内存使用情况，如果可用系统内存不多，在空闲的时候还会停掉自己。如果你想要显式的停止守护进程，使用命令gradle --stop
@@ -155,7 +155,7 @@ It is also possible to destabilize the Daemon (and build environment in general)
 
 Gradle actively monitors heap usage and attempts to detect when a leak is starting to exhaust the available heap space in the daemon. When it detects a problem, the Gradle daemon will finish the currently running build and proactively restart the daemon on the next build. This monitoring is enabled by default, but can be disabled by setting the org.gradle.daemon.performance.enable-monitoring system property to false.
 
-If it is suspected that the Daemon process has become unstable, it can simply be killed. Recall that the --no-daemon switch can be specified for a build to prevent use of the Daemon. This can be useful to diagnose whether or not the Daemon is actually the culprit of a problem.
+如果你觉得守护进程变的不稳定的话，杀掉它就可以了。回忆以下，可以为一次构建指定--no-daemon开关来阻止使用守护进程。这个方法在用来判断是不是守护进程导致了问题的时候会很有用。
 ### 7.6. 工具和IDE
 IDE和其他工具都使用Gradle工具API(查看第14章，使用工具API内嵌Gradle)来集成gradle，它们总是使用Gradle守护进行来执行构建过程，如果你通过IDE来执行Gradle构建，那么你就是在使用Gradle守护进行，不需要专门为你的环境去允许它
 ###7.7. Gradle守护进程是怎么加速构建过程的
