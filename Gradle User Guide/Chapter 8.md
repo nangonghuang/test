@@ -1,6 +1,5 @@
 Chapter 8. Dependency Management Basics
 # 第八章 依赖管理基础
- 
  目录
 
 [8.1. 依赖管理是什么](#81-依赖管理是什么)
@@ -9,13 +8,13 @@ Chapter 8. Dependency Management Basics
 
 [8.3. 依赖配置](#83-依赖配置)
 
-[8.4. External dependencies]
+[8.4. 外部依赖](#84-外部依赖)
 
-[8.5. Repositories]
+[8.5. 仓库](#85-仓库)
 
-[8.6. Publishing artifacts]
+[8.6. Publishing artifacts](#86-publication-artifacts)
 
-[8.7. Where to next?]
+[8.7. 接下来是什么](#87-接下来是什么)
 
 这一章介绍了Gradle的一些依赖管理的基础知识。
 
@@ -41,7 +40,7 @@ Chapter 8. Dependency Management Basics
 **Example 8.1. 声明依赖**
 
 build.gradle
-```
+```groovy
 apply plugin: 'java'
 
 repositories {
@@ -87,9 +86,9 @@ dependencies {
 你需要添加外部依赖到依赖配置里面去，这样才能定义它：
 
 **Example 8.2. 声明外部依赖**
-```
-build.gradle
 
+build.gradle
+```groovy
 dependencies {
     compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
 }
@@ -101,86 +100,87 @@ dependencies {
 **Example 8.3. 外部依赖的快捷定义**
 
 build.gradle
-```
+```groovy
 dependencies {
     compile 'org.hibernate:hibernate-core:3.6.7.Final'
 }
 ```
 想知道更多的关于定义和使用依赖进行工作的例子，查看25.4节"怎样声明你的依赖"
 ## 8.5. 仓库
+Gradle怎样找到外部依赖文件的？Gradle在仓库里面找到它们。仓库是一个由group,name和version描述的文件的集合。Gradle能够识别不同的仓库格式，比如maven和ivy,也可以通过不同的方式访问仓库，比如使用本地文
+件系统或者http。
 
-How does Gradle find the files for external dependencies? Gradle looks for them in a repository. A repository is really just a collection of files, organized by group, name and version. Gradle understands several different repository formats, such as Maven and Ivy, and several different ways of accessing the repository, such as using the local file system or HTTP.
+默认情况下，Gradle不会预定义任何仓库。在你使用外部依赖的时候需要自己去指定至少一个。一个选项是maven中央仓库:
 
-By default, Gradle does not define any repositories. You need to define at least one before you can use external dependencies. One option is use the Maven central repository:
-
-Example 8.4. Usage of Maven central repository
+**Example 8.4. 使用maven中央仓库**
 
 build.gradle
-
+```groovy
 repositories {
     mavenCentral()
 }
+```
+或者 Bintray’s JCenter:
 
-Or Bintray’s JCenter:
-
-Example 8.5. Usage of JCenter repository
+**Example 8.5. 使用JCenter仓库**
 
 build.gradle
-
+```groovy
 repositories {
     jcenter()
 }
+```
+或者任何其他的maven远程仓库:
 
-Or any other remote Maven repository:
-
-Example 8.6. Usage of a remote Maven repository
+**Example 8.6. 使用maven远程仓库**
 
 build.gradle
-
+```groovy
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
     }
 }
+```
+或者 Ivy远程仓库:
 
-Or a remote Ivy repository:
-
-Example 8.7. Usage of a remote Ivy directory
+**Example 8.7. 使用Ivy远程仓库**
 
 build.gradle
-
+```groovy
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
     }
 }
+```
+你也可以使用本地文件系统上的仓库，Maven或者ivy仓库都可以
 
-You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
-
-Example 8.8. Usage of a local Ivy directory
+**Example 8.8. 使用本地Ivy目录**
 
 build.gradle
-
+```groovy
 repositories {
     ivy {
         // URL can refer to a local directory
         url "../local-repo"
     }
 }
+```
+一个项目可以使用多个仓库。Gradle会在每个仓库里面去找指定的依赖项，在一个仓库里面找到需要的模块之后就不再寻找。
 
-A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
+想要知道更多关于仓库的定义和使用的信息，查看25.6节仓库。
 
-To find out more about defining and working with repositories, have a look at Section 25.6, “Repositories”.
-8.6. Publishing artifacts
+## 8.6. publication artifacts
 
-Dependency configurations are also used to publish files.[2] We call these files publication artifacts, or usually just artifacts.
+发布文件需要进行依赖配置。我们把这些文件叫做publication artifacts，或者简单的叫做artifacts。
 
-The plugins do a pretty good job of defining the artifacts of a project, so you usually don’t need to do anything special to tell Gradle what needs to be published. However, you do need to tell Gradle where to publish the artifacts. You do this by attaching repositories to the uploadArchives task. Here’s an example of publishing to a remote Ivy repository:
+插件已经为定义artifacts做了很多工作，因此要告诉Gradle需要什么你不需要做什么特殊的事情。不过你必须告诉Gradle去那里发布这些artifacts，你可以通过给uploadArchives任务附加仓库来做到这些。这里是一个发布到远程ivy仓库的例子：
 
-Example 8.9. Publishing to an Ivy repository
+**Example 8.9. Publishing to an Ivy repository**
 
 build.gradle
-
+```groovy
 uploadArchives {
     repositories {
         ivy {
@@ -192,15 +192,15 @@ uploadArchives {
         }
     }
 }
+```
+现在，你可以运行gradle uploadArchives，Gradle将会构建和上传你的jar，它也会生成和上传ivy.xml.
 
-Now, when you run gradle uploadArchives, Gradle will build and upload your Jar. Gradle will also generate and upload an ivy.xml as well.
+你也可以发布到maven仓库，不过语法会有一点不同，注意的是要想发布到maven仓库的话你需要使用maven插件。当这个做好了，Gradle就会生成和上传pom.xml。
 
-You can also publish to Maven repositories. The syntax is slightly different.[3] Note that you also need to apply the Maven plugin in order to publish to a Maven repository. when this is in place, Gradle will generate and upload a pom.xml.
-
-Example 8.10. Publishing to a Maven repository
+**Example 8.10. Publishing to a Maven repository**
 
 build.gradle
-
+```groovy
 apply plugin: 'maven'
 
 uploadArchives {
@@ -210,12 +210,12 @@ uploadArchives {
         }
     }
 }
+```
+想要知道更多关于publication的信息，查看32章Publishing artifacts。
+## 8.7. 接下来是什么
 
-To find out more about publication, have a look at Chapter 32, Publishing artifacts.
-8.7. Where to next?
+想要获取所有关于依赖方案的细节，查看25章，依赖管理，如果是artifact publication，查看32章。
 
-For all the details of dependency resolution, see Chapter 25, Dependency Management, and for artifact publication see Chapter 32, Publishing artifacts.
+如果你对这里提到的DSL元素感兴趣的话，查看Project.configurations{}， Project.repositories{}和Project.dependencies{}。
 
-If you are interested in the DSL elements mentioned here, have a look at Project.configurations{}, Project.repositories{} and Project.dependencies{}.
-
-Otherwise, continue on to some guides.
+否则，继续别的Guide章节把。
