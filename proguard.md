@@ -2,6 +2,7 @@
 #Proguard
 
 [proguard文档](https://www.guardsquare.com/en/proguard)
+
 在android sdk目录下tools\proguard也有
 
 ## 引言
@@ -267,7 +268,7 @@ allowobfuscation
 * **class**表示类或者接口. **interface** 只匹配接口. The **enum** 匹配枚举类. 带有!符号表示不匹配此类型.
 * 每一个类名都需要使用完整名.内部类使用"$"符号间隔,比如java.lang.Thread$State.类名可以包含匹配以下通配符的正则表达式:
   *  ?   匹配类名里面的任意单个字符,不包括包名分隔符.比如"mypackage.Test?" 匹配 "mypackage.Test1" 和 "mypackage.Test2", 不匹配"mypackage.Test12".
-  *  \*  匹配类名的任意一部分,不包括包名分隔符.比如,"mypackage.*Test*" 匹配 "mypackage.Test" 和 "mypackage.YourTestApplication", 不匹配"mypackage.mysubpackage.MyTest",或者,更普遍的,"mypackage.*" 匹配所有的 "mypackage"包下的类,但是不包含子包下的类.
+  *  \*  匹配类名的任意一部分,不包括包名分隔符.比如,"mypackage.\*Test\*" 匹配 "mypackage.Test" 和 "mypackage.YourTestApplication", 不匹配"mypackage.mysubpackage.MyTest",或者,更普遍的,"mypackage.*" 匹配所有的 "mypackage"包下的类,但是不包含子包下的类.
   *  \** 匹配类名的任意部分,也许包含任意数量的包分隔符,比如 \"\**.Test\"匹配除了根目录以外所有包下的Test类. 或者"mypackage.**" 匹配"mypackage"包和它的子包下的所有类.
 * 为了方便和向下兼容,\*表示任意的类,无论是哪个包的
 * @符号表示被限制为指定注解标记的类和类成员.
@@ -456,5 +457,6 @@ myobfuscated.f
 
 
 在ANDROID_SDK的tools\proguard\examples 目录下,有更多的示例用法
+
 感谢:
 http://blog.csdn.net/byhook/article/details/52529617

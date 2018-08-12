@@ -72,7 +72,7 @@ Note: Recompile with -Xlint:deprecation for details.
 
 通过构建进度条你可以很快捷的知道这次构建是不是会很快结束。构建工作开始的时候，进度条会从左到右填充。在任何时间，构建进度条也会渲染出当前构建处于生命周期的哪个阶段和总共用的时间。
 
-Figure 5.3. Build progress bar portion of the Gradle command-line
+Figure 5.3. Build progress bar portion of the Gradle command-line   
 ![Build progress bar portion of the Gradle command-line](https://docs.gradle.org/current/userguide/img/console-build-progress-bar.jpg)
 
 下面的例子显示了初始化配置和执行阶段的进度条
@@ -86,7 +86,7 @@ Figure 5.3. Build progress bar portion of the Gradle command-line
 
 Gradle在构建进度条下剔红了很直观的视图用来查看当前正在进行的工作。每一行都代表一个能并行解析依赖项，执行任务和运行测试的工作线程或者进程。如果一个可用的工作者没有被使用它就会被标记为空闲。默认的工作者数量取决于你执行任务的机器的核心数量
 
-Figure 5.4. Work in-progress portion of the Gradle command-line
+Figure 5.4. Work in-progress portion of the Gradle command-line   
 ![Work in-progress portion of the Gradle command-line](https://docs.gradle.org/current/userguide/img/console-work-in-progress.jpg)
 
 > 并行测试任务的执行只会在基于JVM的测试任务中由Gradle核心来显示，也就是Junit和TestNG。未来的Gradle版本可能会支持其他类型的测试工具和框架。
@@ -108,7 +108,7 @@ Figure 5.4. Work in-progress portion of the Gradle command-line
 
 在构建的结尾，Gradle会显示构建结果(成功或者失败)和执行的任务数量以及跳过的任务数量。构建结果也会显示执行任务整体的消耗时间。执行的任务数量直观的显示了how out-of-date or busy the build was.
 
-Figure 5.5. Build progress bar portion of the Gradle command-line
+Figure 5.5. Build progress bar portion of the Gradle command-line   
 ![Build progress bar portion of the Gradle command-line](https://docs.gradle.org/current/userguide/img/console-build-result.jpg)
 
 下面的构建结果显示了一次成功的构建结果和任务的数量以及它们的状态
