@@ -16,6 +16,7 @@ Binder是Android系统提供的一种IPC机制。在基于Binder通信的CS建�
 
 因为按照自己的逻辑写总是很乱，所以写到最后发现基本就是对 [Android进程间通信（IPC）机制Binder简要介绍和学习计划](https://blog.csdn.net/luoshengyang/article/details/6618363)的简化。。。
 
+
 ## Native端 ServiceManager 启动过程
 
 这里基于 8.1.0   
@@ -79,8 +80,47 @@ int main(int argc, char** argv)
     return 0;
 }
 
-
+void binder_loop(struct binder_state *bs, binder_handler func)
+    {
+        int res;
+        struct binder_write_read bwr;
+        unsigned readbuf[32];
+    
+        bwr.write_size = 0;
+        bwr.write_consumed = 0;
+        bwr.write_buffer = 0;
+        
+        readbuf[0] = BC_ENTER_LOOPER;
+        binder_write(bs, readbuf, sizeof(unsigned));
+    
+        for (;;) {
+            bwr.read_size = sizeof(readbuf);
+            bwr.read_consumed = 0;
+            bwr.read_buffer = (unsigned) readbuf;
+    
+            res = ioctl(bs->fd, BINDER_WRITE_READ, &bwr);
+    
+            if (res < 0) {
+                LOGE("binder_loop: ioctl failed (%s)\n", strerror(errno));
+                break;
+            }
+    
+            res = binder_parse(bs, 0, readbuf, bwr.read_consumed, func);
+            if (res == 0) {
+                LOGE("binder_loop: unexpected reply?!\n");
+                break;
+            }
+            if (res < 0) {
+                LOGE("binder_loop: io error %d %s\n", res, strerror(errno));
+                break;
+            }
+        }
+    }
+    ```
 ```
+
+![ServiceManager](Android中的binder流程/binder_15.png)
+
 提炼出关键步骤就是
 1. `binder_open(driver, 128*1024)` ,内部调用为 :
     1. 打开/dev/binder文件：`bs->fd = open("/dev/binder", O_RDWR);`,这个方法会进入到binder驱动程序，保存线程上下文信息，生成多个红黑树，用于保存服务端binder实体信息，客户端binder引用信息等;
@@ -303,28 +343,6 @@ MediaPlayerService的启动过程：
     ```
     这里 `flatten_binder(ProcessState::self(), val, this)`会把传入进来的 IBinder实现类service转成一个flat_binder_object对象，然后序列化到Parcel 里面 。 每一个Binder实体或者引用，通过 struct flat_binder_object 来表示，成员变量里面 binder表示这是一个Binder实体，handle表示这是一个Binder引用，当这是一个Binder实体时，cookie才有意义，表示附加数据，由进程自己解释。：
     ```c++
-        /*
-     * This is the flattened representation of a Binder object for transfer
-     * between processes.  The 'offsets' supplied as part of a binder transaction
-     * contains offsets into the data where these structures occur.  The Binder
-     * driver takes care of re-writing the structure type and data as it moves
-     * between processes.
-     */
-    struct flat_binder_object {
-    	/* 8 bytes for large_flat_header. */
-    	unsigned long		type;
-    	unsigned long		flags;
-     
-    	/* 8 bytes of data. */
-    	union {
-    		void		*binder;	/* local object */
-    		signed long	handle;		/* remote object */
-    	};
-     
-    	/* extra data associated with local object */
-    	void			*cookie;
-    };
-
     status_t flatten_binder(const sp<ProcessState>& proc,const sp<IBinder>& binder, Parcel* out)
     {
         flat_binder_object obj;
@@ -366,13 +384,35 @@ MediaPlayerService的启动过程：
         ...
     }
 
-    status_t IPCThreadState::transact(int32_t handle,uint32_t code, const Parcel& data,Parcel* reply, uint32_t flags)
+    status_t IPCThreadState::transact(int32_t handle,
+                                    uint32_t code, const Parcel& data,
+                                    Parcel* reply, uint32_t flags)
     {
-        ...
-        err = writeTransactionData(BC_TRANSACTION, flags, handle, code, data, NULL);
-        ...
-        err = waitForResponse(reply);
-        ...
+        . . . . . .
+            // 把data数据整理进内部的mOut包中
+            err = writeTransactionData(BC_TRANSACTION, flags, handle, code, data, NULL);
+        . . . . . .
+    //IPCThreadState::transact()会考虑本次发起的事务是否需要回复。“不需要等待回复的”事务，在其flag标志中会含有TF_ONE_WAY，表示一去不回头。而“需要等待回复的”，则需要在传递时提供记录回复信息的Parcel对象，一般发起transact()的用户会提供这个Parcel对象，如果不提供，transact()函数内部会临时构造一个假的Parcel对象。
+        if ((flags & TF_ONE_WAY) == 0)
+        {
+            . . . . . .
+            if (reply)
+            {
+                err = waitForResponse(reply);
+            }
+            else
+            {
+                Parcel fakeReply;
+                err = waitForResponse(&fakeReply);
+            }
+            . . . . . .
+        }
+        else
+        {
+            err = waitForResponse(NULL, NULL);
+        }
+    
+        return err;
     }
 
     status_t IPCThreadState::writeTransactionData(int32_t cmd, uint32_t binderFlags,int32_t handle, uint32_t code, const Parcel& data, status_t* statusBuffer)
@@ -394,11 +434,14 @@ MediaPlayerService的启动过程：
         mOut.writeInt32(cmd);
         mOut.write(&tr, sizeof(tr));
     }
+
     status_t IPCThreadState::waitForResponse(Parcel *reply, status_t *acquireResult)
     {
         ...
+        // talkWithDriver()内部会完成跨进程事务
         if ((err=talkWithDriver()) < NO_ERROR) break;
         ...
+        // 事务的回复信息被记录在mIn中，所以需要进一步分析这个回
         cmd = mIn.readInt32();
         switch (cmd) {
         case BR_TRANSACTION_COMPLETE:
@@ -409,7 +452,7 @@ MediaPlayerService的启动过程：
 
     status_t IPCThreadState::talkWithDriver(bool doReceive)
     {
-        //把mOut数据和mIn的数据处理后赋值给bwr
+        //把mOut数据和mIn的数据处理后构造一个binder_write_read对象
         binder_write_read bwr;
         bwr.write_size = outAvail;
         bwr.write_buffer = (long unsigned int)mOut.data();
@@ -431,6 +474,9 @@ MediaPlayerService的启动过程：
         ...
     }
     ```
+    
+    短暂的总结一下流程:
+    ![binder_16](Android中的binder流程/binder_16.png)
 
     --------
 
@@ -663,7 +709,7 @@ MediaPlayerService的启动过程：
         bio_put_uint32(reply, 0);  //reply返回0
         return 0;
 
-    //把MediaPlayerService这个Binder实体的引用写到一个struct svcinfo结构体中，
+    //把MediaPlayerService这个Binder实体的句柄值写到一个struct svcinfo结构体中，
     //然后插入到链接svclist的头部去
     int do_add_service(struct binder_state *bs,
                     uint16_t *s, unsigned len,
@@ -1015,12 +1061,19 @@ android::sp<IMediaPlayerService> IMediaPlayerService::asInterface(const android:
 ```
 最终得到一个BpMediaPlayerService对象
 
+![binder_9](Android中的binder流程/binder_9.png)
+
 ## 总结一下(c++部分)
 1. 获取 ServiceManager 远程接口的时候，不需要跨进程，因为ServiceManger的binder实体固定句柄为0，只需要new BpBinder(0) 就可以得到binder引用，拿到 BpServieManager
 2. 获取普通服务的远程接口的时候，需要跨进程调用，因为需要通过 BpServieManager 向ServiceManger请求，ServiceManager会返回名字对应的服务的Binder实体的句柄给驱动程序，驱动程序读出来后序列化后返回给客户端，客户端拿到以后就可以new BpBinder(handle)拿到普通服务的远程代理对象了。
 3. 调用 ServiceManager 的功能的时候(比如addservice，getService),  ServiceManager 是在binder_loop函数中解析 驱动传过来的数据后，直接处理，然后返回数据给驱动程序。 而 调用普通服务的功能的时候，拿到 驱动传过来的数据后会调用到BBinder的虚函数去处理
-4. IPCThreadState类借助ProcessState类来负责与Binder驱动程序交互
-5. 需要注意的是，比如我们在addService中传入一个BBinder对象，会通过`writeStrongBinder()`序列化成一个`flat_binder_object()`后传给驱动，而在`getService()`的时候,驱动返回的也是一个包含服务端句柄的 `flat_binder_object`对象，这个对象会被`readStrongBinder()`函数解析成一个BpBinder对象返回给调用方。在我们看到比如 WindowsManagerService等服务的代码的时候，会涉及到各种Binder对象，这个时候就需要知道，比如openSession函数里面`return session`，这是一个IWindowSession.Stub的实例，是Bn端，但是返回给客户端的时候经过Binder驱动处理，客户端拿到的只是一个IWindowSession的Bp端接口，session.addWindow的时候，传入的参数是一个IWindow.Stub的Bn端实例，但是经过Binder驱动处理后，wms拿到的就是一个IWindow的Bp端接口
+4. IPCThreadState类借助ProcessState类来负责与Binder驱动程序交
+5. 需要注意的是，比如我们在addService中传入一个BBinder对象，会通过`writeStrongBinder()`序列化成一个`flat_binder_object`后传给驱动，而在`getService()`的时候,驱动返回的也是一个包含服务端句柄的 `flat_binder_object`对象，这个对象会被`readStrongBinder()`函数解析成一个BpBinder对象返回给调用方。
+
+流程总结:
+![binder_8](Android中的binder流程/binder_8.png)
+
+
 
 ## Java层
 以ServiceManager.java 为例 :
@@ -1060,7 +1113,17 @@ ServiceManager通过getIServiceManager()拿到远程接口，`BinderInternal.get
 二是 我们通过服务的xxServiceProxy远程接口来调用方法的时候，
 通过Binder驱动调起 相应的服务端 BBinder的transact()方法，然后是 onTransact() 函数，再通过env->CallBooleanMethod()反射回到Java端IXXXService.Stub子类，进而调其Stub子类中的方法。
 
+
+将某个binder实体或代理对象作为跨进程调用的参数，“传递”给“目标端”，这样目标端也可以拿到一个合法的BpBinder。
+
+![binder_14](Android中的binder流程/binder_14.png)
+
+在我们看到比如 WindowsManagerService等服务的代码的时候，会涉及到各种Binder对象，这个时候就需要知道，比如openSession函数里面`return session`，这是一个IWindowSession.Stub的实例，是Bn端，但是返回给客户端的时候经过Binder驱动处理，客户端拿到的只是一个IWindowSession的Bp端接口，session.addWindow的时候，传入的参数是一个IWindow.Stub的Bn端实例，但是经过Binder驱动处理后，wms拿到的就是一个IWindow的Bp端接口
+
+
 > 参考：   
 > 《深入理解Android 卷1》  
 > 《深入理解Android 卷3》   
->  [Android进程间通信（IPC）机制Binder简要介绍和学习计划](https://blog.csdn.net/luoshengyang/article/details/6618363)
+> [Android进程间通信（IPC）机制Binder简要介绍和学习计划](https://blog.csdn.net/luoshengyang/article/details/6618363)
+> [深入分析Android Binder 驱动](https://blog.csdn.net/yangwen123/article/details/9316987)
+> [红茶一杯话Binder](https://my.oschina.net/youranhongcha/blog/152233)
