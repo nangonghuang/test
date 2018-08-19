@@ -516,6 +516,11 @@ MediaPlayerService的启动过程：
         ...
     }
 
+    //binder_transaction函数主要负责的工作：
+    //新建binder_transaction对象，并插入到自己的binder_transaction堆栈中
+    //新建binder_work对象，插入到目标队列
+    //Binder与Handle的转换 (flat_binder_object)
+
     static void binder_transaction(struct binder_proc *proc, struct binder_thread *thread,struct binder_transaction_data *tr, int reply)
     {
         ......
@@ -1072,7 +1077,7 @@ android::sp<IMediaPlayerService> IMediaPlayerService::asInterface(const android:
 
 流程总结:
 ![binder_8](Android中的binder流程/binder_8.png)
-
+![binder_21](Android中的binder流程/binder_21.jpg)
 
 
 ## Java层
