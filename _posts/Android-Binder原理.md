@@ -7,7 +7,7 @@ categories: Android_基础
 
 
 ## Binder驱动原理
-Binder驱动的核心是维护一个binder_proc类型的链表。里面记录了包括ServiceManager在内的所有Client信息，当Client去请求得到某个Service时，Binder驱动就去binder_proc中查找相应的Service返回给Client，同时增加当前Service的引用个数。
+Binder驱动的核心是维护一个binder_proc类型的链表。里面记录了包括ServiceManager在内的所有Client信息，当Client去请求得到某个Service时，Binder驱动就去binder_proc中查找相应的Service返回给Client，同时增加当前Service的引用个数。<!--more-->
 
 Binder驱动是作为一个特殊字符型设备存在，设备节点为/dev/binder，遵循Linux设备驱动模型。在驱动实现过程中，主要通过binder_ioctl函数与用户空间的进程交换数据。BINDER_WRITE_READ用来读写数据，数据包中有个cmd用于区分不同的请求。
 在binder_thread_write函数中调用binder_transaction函数来转发请求并返回结果，而binder_thread_read函数用于读取结果。。当服务进程收到请求时，binder_transaction函数会通过对象的handle找到对象所在进程，如果handle为0，就认为请求的是ServiceManager进程。
@@ -318,7 +318,9 @@ struct binder_transaction_data {
     1. 首先，binder驱动分配内存以保存binder_proc数据结构。然后，binder填充binder_proc数据（初始化），增加当前线程/进程的引用计数并赋值给tsk
     2. 增加BINDER_STAT_PROC的对象计数，并把创建的binder_proc对象添加到全局的binder_procs中，这样任何一个进程就都可以访问到其他进程的binder_proc对象了。
     3. 把binder_proc对象指针赋值给filp的private_data域中，在后面每次执行binder_ioctl()，都会从filp->private_data域重新读取binder_proc。
-2. `binder_mmap()` 
+2. `binder_mmap()`    
+    内存的映射：
+    ![binder_19](Android-Binder原理/binder_19.png)
     ```c++
     static int binder_mmap(struct file *filp, struct vm_area_struct *vma) {
         int ret;
@@ -417,9 +419,6 @@ struct binder_transaction_data {
         return 0;
     }
     ```
-    
-    ![binder_17](Android-Binder原理/binder_19.png)
-
 3. `binder_ioctl()`
     这个函数是Binder的最核心部分，Binder的功能就是通过ioctl命令来实现的。Binder的ioctl命令共有7个，定义在ioctl.h头文件中：
     ```c++
