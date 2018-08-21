@@ -5,7 +5,7 @@ tags:
 categories: Android_基础
 ---
 
-在wms服务中，我们可以直接使用它的api来创建一个窗口，显示出来并且通过InputEventReceiver接收输入事件。但是这种方法太原始，
+在wms服务中，我们可以直接使用它的api来创建一个窗口，显示出来并且通过InputEventReceiver接收输入事件。但是这种方法太原始,并且存在以下一些问题:
 1. 需要完全的Android源码环境
 2. 需要自己去处理UI元素的测量，布局和绘制
 3. 还需要处理InputEventReceiver事件，分发到合适的窗口
@@ -534,7 +534,7 @@ draw的draw()方法，简便流程主要有以下几步：
 获取到焦点的控件实际上只是增加了 PFLAG_FOCUSED 标记，而失去焦点则删除这个标记
 
 ## Activity和PhoneWindow
-
+![Activity的显示过程](Android控件总结/Activity的显示过程.jpg)
 ### PhoneWindow
 通过 WindowManager ，ViewRootImpl 创建窗口的时候，我们仍然需要自行初始化 LayoutParams ，处理控件树的添加和删除等。 Android 在此之上又提供了一套机制，用于更简单的创建窗口和界面。而且 界面提供了预定义的样式，比如 标题栏，图标等，相比于自行创建符合Android规范的界面模板，进一步简化了开发者工作。这些工作是通过一个 com.view.Window 抽象类来实现的，目前它的唯一实现是PhoneWindow 类。我们仅仅需要通过setContentView()设置自己定义的控件树就可以得到一个带有标准模板的窗口界面，模板的样式取决于flag,theme等属性
 
