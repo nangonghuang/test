@@ -520,9 +520,21 @@ draw的draw()方法，简便流程主要有以下几步：
 4. 绘制装饰(前景色，滚动条,etc.) `onDrawForeground(canvas);`
 
 
+## Activity和PhoneWindow
+
+![Activity的显示过程](Android控件总结/Activity的显示过程.jpg)
+
+### PhoneWindow
+通过 WindowManager ，ViewRootImpl 创建窗口的时候，我们仍然需要自行初始化 LayoutParams ，处理控件树的添加和删除等。 Android 在此之上又提供了一套机制，用于更简单的创建窗口和界面。而且 界面提供了预定义的样式，比如 标题栏，图标等，相比于自行创建符合Android规范的界面模板，进一步简化了开发者工作。这些工作是通过一个 com.view.Window 抽象类来实现的，目前它的唯一实现是PhoneWindow 类。我们仅仅需要通过setContentView()设置自己定义的控件树就可以得到一个带有标准模板的窗口界面，模板的样式取决于flag,theme等属性
+
+### DecorView
+DecorView 继承了 FrameLayout , 是 PhoneWindow 类里面的 控件树的根。预定义的样式就是由它实现，在我们通过setContentView()设置自己定义的View的时候，仅仅是设置View到DecorView里面成为它的子view。
+
+
 ## 控件焦点
 
-触摸模式和键盘模式
+* 触摸模式(Touch_mode)：在触摸模式下，一些控件比如菜单项，按钮等将不再可以保持或获取焦点，文本框等依然可以获取焦点
+* 非触摸模式： 在这个模式下，菜单项，按钮等都可以获取焦点，通过方向键使焦点在这些控件之间游走，从而进行选择和确认
 
 控件能否获取焦点的策略：
 1. 当 NOT_FOCUSABLE 标记位于View.mViewFlags时，无法获取焦点
@@ -531,14 +543,164 @@ draw的draw()方法，简便流程主要有以下几步：
     1. 位于非触摸模式时，可以获取焦点
     2. 位于触摸模式的时候，View.mViewFlags 中存在 FUCUSABLE_IN_TOUCH_MODE标记可以获取焦点，否则不能获取焦点
 
-获取到焦点的控件实际上只是增加了 PFLAG_FOCUSED 标记，而失去焦点则删除这个标记
+获取到焦点的控件实际上只是增加了 PFLAG_FOCUSED 标记，而失去焦点则删除这个标记。对于获取到焦点的控件来说，它的父控件则会用 mFocused 变量来保存此控件，这样通过控件树的根节点可以迅速的一层层找到最终拥有焦点的控件。View类则提供两个方法来查询焦点的状态。
+1. `isFocused()` 表示此控件是否含有`PFLAG_FOCUSED`标记，即焦点的持有者
+2. `hasFocused()` 表示焦点是否在其内部，也就是自己或者子控件持有焦点
 
-## Activity和PhoneWindow
-![Activity的显示过程](Android控件总结/Activity的显示过程.jpg)
-### PhoneWindow
-通过 WindowManager ，ViewRootImpl 创建窗口的时候，我们仍然需要自行初始化 LayoutParams ，处理控件树的添加和删除等。 Android 在此之上又提供了一套机制，用于更简单的创建窗口和界面。而且 界面提供了预定义的样式，比如 标题栏，图标等，相比于自行创建符合Android规范的界面模板，进一步简化了开发者工作。这些工作是通过一个 com.view.Window 抽象类来实现的，目前它的唯一实现是PhoneWindow 类。我们仅仅需要通过setContentView()设置自己定义的控件树就可以得到一个带有标准模板的窗口界面，模板的样式取决于flag,theme等属性
+## 输入事件的派发
 
-### DecorView
-DecorView 继承了 FrameLayout , 是 PhoneWindow 类里面的 控件树的根。预定义的样式就是由它实现，在我们通过setContentView()设置自己定义的View的时候，仅仅是设置View到DecorView里面成为它的子view。
+在ViewRootImpl.setView()中，ViewRootImpl使用wms分配的 InputChannel 创建了 InputEventReceiver 来接收输入事件，它们通过 onInputEvent()回调来得到事件并且进行处理：
+```java
+void setview(...){
+    ...
+    mInputEventReceiver = new WindowInputEventReceiver(mInputChannel,Looper.myLooper());
+    ...
+    mSyntheticInputStage = new SyntheticInputStage();
+    InputStage viewPostImeStage = new ViewPostImeInputStage(mSyntheticInputStage);
+    InputStage nativePostImeStage = new NativePostImeInputStage(viewPostImeStage,"aq:native-post-ime:" + counterSuffix);
+    InputStage earlyPostImeStage = new EarlyPostImeInputStage(nativePostImeStage);
+    InputStage imeStage = new ImeInputStage(earlyPostImeStage,"aq:ime:" + counterSuffix);
+    InputStage viewPreImeStage = new ViewPreImeInputStage(imeStage);
+    InputStage nativePreImeStage = new NativePreImeInputStage(viewPreImeStage,"aq:native-pre-ime:" + counterSuffix);
 
-## 控件的触摸事件
+    mFirstInputStage = nativePreImeStage;
+    mFirstPostImeInputStage = earlyPostImeStage;
+    mPendingInputEventQueueLengthCounterName = "aq:pending:" + counterSuffix;
+}
+
+void enqueueInputEvent(InputEvent event,
+        InputEventReceiver receiver, int flags, boolean processImmediately) {
+    adjustInputEventForCompatibility(event);
+    QueuedInputEvent q = obtainQueuedInputEvent(event, receiver, flags);
+    ... //输入事件加入到链表中
+    if (processImmediately) {
+        doProcessInputEvents();
+    } else {
+        //稍后处理，通过handler还是会走到doProcessInputEvents()中
+        scheduleProcessInputEvents();
+    }
+
+void doProcessInputEvents() {
+    // Deliver all pending input events in the queue.
+    while (mPendingInputEventHead != null) {
+        QueuedInputEvent q = mPendingInputEventHead;
+        mPendingInputEventHead = q.mNext;
+        ...
+        deliverInputEvent(q);
+    }
+    ...
+}
+
+private void deliverInputEvent(QueuedInputEvent q) {
+    Trace.asyncTraceBegin(Trace.TRACE_TAG_VIEW, "deliverInputEvent",
+            q.mEvent.getSequenceNumber());
+    if (mInputEventConsistencyVerifier != null) {
+        mInputEventConsistencyVerifier.onInputEvent(q.mEvent, 0);
+    }
+
+    InputStage stage;
+    if (q.shouldSendToSynthesizer()) {
+        stage = mSyntheticInputStage;
+    } else {
+        stage = q.shouldSkipIme() ? mFirstPostImeInputStage : mFirstInputStage;
+    }
+
+    if (stage != null) {
+        stage.deliver(q);
+    } else {
+        //做一些清理回收工作
+        finishInputEvent(q);
+    }
+}
+```
+其中，输入事件在这里被定义成了几个类型：
+1. keyEvent 按键事件
+2. PointerEvent 触摸事件 
+3. TrackballEvent 轨迹球事件
+4. GenericMotionEvent 其他事件，比如悬浮(HOVER)事件，游戏手柄等
+
+而 InputStage 是一个基类，通过Wrapper模式不断的调用apply和forward方法来进行链式调用，定义了6个state，在各个阶段会选择性处理感兴趣的事件，在任一阶段事件被消耗掉了都不会继续传递:
+1. nativePreImeStage : 这里会把输入事件传给native层看看是否要处理
+2. viewPreImeStage ： 这里会把输入事件交给view去处理，对 keyEvent事件 调用 `mView.dispatchKeyEventPreIme(event)`
+3. imeStage : 这里会把输入事件交给输入法窗口去处理，调用`imm.dispatchInputEvent(event, q, this, mHandler)`
+4. earlyPostImeStage ：这里会进行一些状态记录，触摸模式的确认和退出等
+5. nativePostImeStage ： 同1一样，只不过这里是在 输入法窗口处理 之后再次传给 native 层
+6. viewPostImeStage ： 把输入事件交给view去处理
+    ```Java
+    protected int onProcess(QueuedInputEvent q) {
+        if (q.mEvent instanceof KeyEvent) {
+            return processKeyEvent(q);
+        } else {
+            final int source = q.mEvent.getSource();
+            if ((source & InputDevice.SOURCE_CLASS_POINTER) != 0) {
+                return processPointerEvent(q);
+            } else if ((source & InputDevice.SOURCE_CLASS_TRACKBALL) != 0) {
+                return processTrackballEvent(q);
+            } else {
+                return processGenericMotionEvent(q);
+            }
+        }
+    }
+    ```
+
+### 按键事件 
+keyEvent 按键事件是基于焦点派发的，因为在非触摸模式下，输入法窗口无法获取到焦点，因此在这里会给输入法窗口一个处理的机会。对于view来说，处理的逻辑相对比较简单，如果自己拥有焦点，则调用自己的`view.onKeyPreIme()`方法去处理，否则调用`mFocused.dispatchKeyEventPreIme(event)`
+
+### 触摸事件 
+```java
+// ViewRootImply::processPointerEvent
+private int processPointerEvent(QueuedInputEvent q) {
+    final MotionEvent event = (MotionEvent)q.mEvent;
+    ...
+    boolean handled = mView.dispatchPointerEvent(event);
+    ...
+    return handled ? FINISH_HANDLED : FORWARD;
+}
+
+//View::dispatchPointerEvent()
+public final boolean dispatchPointerEvent(MotionEvent event) {
+    if (event.isTouchEvent()) {
+        return dispatchTouchEvent(event);
+    } else {
+        return dispatchGenericMotionEvent(event);
+    }
+}
+```
+
+多点触摸 ： 
+触摸事件被封装为一个 MotionEvent 类，在多点触摸的情况下，即使 MotionEvent 由一个触摸点触发，它也包含所有触控点的位置信息。这时候通过 `MotionEvent.getAction()`获取的是一个复合值，低8位描述了动作，高8位描述了触控点的索引号。我们可以通过`MotionEvent.getActionMasked()`和`MotionEvent.getActionIndex()`分别获取这两个值。`MotionEvent.getX(index)`和`MotionEvent.getY(index)`则接受索引号为参数返回此触摸点的位置。
+
+索引号不是固定的，比如当我们使用 AB两个手指按下的时候，它们会分别获得的索引号是0和1，当A抬起后，B的索引号则变成了0。但是我们可以通过`MotionEvent.getPointerId(index)`来获取这个索引号对应的触控点的pointerId,这个值则是在不变的
+```java
+//ACTION_DOWN 是第一个手指按下 ，ACTION_UP 是最后一个手指抬起
+ACTION_DOWN --> ACTION_POINTER_DOWN -->ACTION_POINTER_DOWN --> ACTION_POINTER_UP --> ACTION_POINTER_UP --> ACTION_UP
+
+```
+
+`dispatchTouchEvent()`有View和ViewGroup两种实现 :
+```java
+// View::dispatchTouchEvent()
+public boolean dispatchTouchEvent(MotionEvent event) {
+    ...
+    boolean result = false;
+    ...
+    if (onFilterTouchEventForSecurity(event)) {
+        if ((mViewFlags & ENABLED_MASK) == ENABLED && handleScrollBarDragging(event)) {
+            result = true;
+        }
+        //noinspection SimplifiableIfStatement
+        ListenerInfo li = mListenerInfo;
+        if (li != null && li.mOnTouchListener != null && (mViewFlags & ENABLED_MASK) == ENABLED
+                && li.mOnTouchListener.onTouch(this, event)) {
+            result = true;
+        }
+        if (!result && onTouchEvent(event)) {
+            result = true;
+        }
+    }
+
+    ...
+    return result;
+}
+```
+对于View来说， dispatchTouchEvent() 主要做了两件事， 先把事件给`mOnTouchListener`处理，如果`mOnTouchListener`没有消耗掉，则交给`onTouchEvent(event)`处理
