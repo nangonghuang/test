@@ -703,4 +703,109 @@ public boolean dispatchTouchEvent(MotionEvent event) {
     return result;
 }
 ```
-对于View来说， dispatchTouchEvent() 主要做了两件事， 先把事件给`mOnTouchListener`处理，如果`mOnTouchListener`没有消耗掉，则交给`onTouchEvent(event)`处理
+对于View来说， dispatchTouchEvent() 主要做了两件事， 先把事件给`mOnTouchListener`处理，如果`mOnTouchListener`没有消耗掉，则交给`onTouchEvent(event)`处理。
+ViewGroup的 dispatchTouchEvent() 相对来说比较复杂，总体来说，分以下几个步骤：
+1. 准备工作：
+    1. 过滤可能导致安全问题的触控事件
+    2. 如果是`ACTION_DOWN`则清空之前留下的touchTarget和touchState
+    3. 处理 ViewGroup 的拦截的问题 
+2. 开始寻找派发目标：
+    1. 记下触摸事件的pointId
+    2. 按照一定的顺序遍历child，如果触摸点不在child的控件范围内，则排除掉，否则尝试在自己保存的TouchTarget链表中寻找;如果寻找到这个child,那么把后续的事件都交给它，寻找派发目标结束;如果在自己保存的TouchTarget链表中没有找到,那么尝试调用 `dispatchTransformedTouchEvent(...)` 把此次触摸事件派发给这个child控件，并且为这个child生成新的TouchTarget使用头插法加入到保存的链表中，如果调用返回false,表示这个子控件不是派发目标，则继续循环这个过程
+3. 开始派发事件：
+    1. 如果TouchTarget链表为空，则发给自己
+    2. 取出 TouchTarget 的节点，如果已经在上面第二步中派发完成了，则结束派发，否则尝试调用`dispatchTransformedTouchEvent(...)`把此次触摸事件派发给它，如果取消了事件，则需要回收掉该节点。如果失败，则继续尝试下一个节点
+
+派发的函数`dispatchTransformedTouchEvent(...)`如下所示：
+```java
+/**
+    * Transforms a motion event into the coordinate space of a particular child view,
+    * filters out irrelevant pointer ids, and overrides its action if necessary.
+    * If child is null, assumes the MotionEvent will be sent to this ViewGroup instead.
+    */
+private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
+        View child, int desiredPointerIdBits) {
+    final boolean handled;
+
+    // Canceling motions is a special case.  We don't need to perform any transformations
+    // or filtering.  The important part is the action, not the contents.
+    final int oldAction = event.getAction();
+    if (cancel || oldAction == MotionEvent.ACTION_CANCEL) {
+        event.setAction(MotionEvent.ACTION_CANCEL);
+        if (child == null) {
+            handled = super.dispatchTouchEvent(event);
+        } else {
+            handled = child.dispatchTouchEvent(event);
+        }
+        event.setAction(oldAction);
+        return handled;
+    }
+
+    // Calculate the number of pointers to deliver.
+    final int oldPointerIdBits = event.getPointerIdBits();
+    final int newPointerIdBits = oldPointerIdBits & desiredPointerIdBits;
+
+    // If for some reason we ended up in an inconsistent state where it looks like we
+    // might produce a motion event with no pointers in it, then drop the event.
+    if (newPointerIdBits == 0) {
+        return false;
+    }
+
+    // If the number of pointers is the same and we don't need to perform any fancy
+    // irreversible transformations, then we can reuse the motion event for this
+    // dispatch as long as we are careful to revert any changes we make.
+    // Otherwise we need to make a copy.
+    final MotionEvent transformedEvent;
+    if (newPointerIdBits == oldPointerIdBits) {
+        if (child == null || child.hasIdentityMatrix()) {
+            if (child == null) {
+                handled = super.dispatchTouchEvent(event);
+            } else {
+                final float offsetX = mScrollX - child.mLeft;
+                final float offsetY = mScrollY - child.mTop;
+                event.offsetLocation(offsetX, offsetY);
+
+                handled = child.dispatchTouchEvent(event);
+
+                event.offsetLocation(-offsetX, -offsetY);
+            }
+            return handled;
+        }
+        transformedEvent = MotionEvent.obtain(event);
+    } else {
+        transformedEvent = event.split(newPointerIdBits);
+    }
+
+    // Perform any necessary transformations and dispatch.
+    if (child == null) {
+        handled = super.dispatchTouchEvent(transformedEvent);
+    } else {
+        final float offsetX = mScrollX - child.mLeft;
+        final float offsetY = mScrollY - child.mTop;
+        transformedEvent.offsetLocation(offsetX, offsetY);
+        if (! child.hasIdentityMatrix()) {
+            transformedEvent.transform(child.getInverseMatrix());
+        }
+
+        handled = child.dispatchTouchEvent(transformedEvent);
+    }
+
+    // Done.
+    transformedEvent.recycle();
+    return handled;
+}
+```
+注释写的很清楚，这个函数的主要功能是：
+1. 把一个motionEvent转化为childview坐标下的坐标点位置。
+2. 过滤不感兴趣的pointerId触摸点
+3. 可能的情况下，修改Action的值。
+4. 如果传入的child为空，则派发给viewGroup自己
+
+其中，比较复杂的则是 修改Action的值 ，这个涉及到多点触摸的原理和过程，需要另外分析。
+
+
+在 ViewGroup 的处理中，有个比较神奇的操作
+```java
+final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex): TouchTarget.ALL_POINTER_IDS;
+```
+它使用idBitsToAssign 这样一个int值来记录触摸点的信息，因为一个int值最多32bit,所以对于每一个TouchTarget，最多支持32个触摸点
