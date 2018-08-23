@@ -804,7 +804,7 @@ private boolean dispatchTransformedTouchEvent(MotionEvent event, boolean cancel,
 其中，比较复杂的则是 修改Action的值 ，这个涉及到多点触摸的原理和过程，需要另外分析。
 
 
-在 ViewGroup 的处理中，有个比较神奇的操作
+在 ViewGroup 的处理中，有个比较神奇的操作，和常见的使用flags来记录一些预定义的值不一样：
 ```java
 final int idBitsToAssign = split ? 1 << ev.getPointerId(actionIndex): TouchTarget.ALL_POINTER_IDS;
 ```
