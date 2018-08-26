@@ -13,7 +13,7 @@ categories: Android_基础
 <!--more-->
 因此Android提供了控件系统来帮我们完成各种各样的控件的创建。更高级一点的创建方式是获取 WindowManager,然后通过addView()方法得到一个可以交互的有界面的窗口
 
-关于WindowManager的一个类图
+关于WindowManager的一个类图,比较容易混乱的是`context.getSystemService(WINDOW)`拿到的其实只是一个WindowManagerImpl类，并不是wms服务。。
 ![WindowManager结构](Android控件总结/WindowManager结构.jpg)
 
 ## 窗口添加view的过程
@@ -21,8 +21,7 @@ categories: Android_基础
 
 ![WindowManager结构](Android控件总结/WindowManager.addView过程.jpg)
 
-我们跟进WindManager.addView()过程，可以看到最终通过RootViewImpl.addView()调用到了PerformTraversals()。除此之外，
-requestLayout()也会导致 PerformTraversals() 被调用：
+我们跟进WindManager.addView()过程，可以看到最终通过RootViewImpl.addView()调用到了PerformTraversals()。除此之外，requestLayout()也会导致 PerformTraversals() 被调用：
 ```Java
     @Override
     public void requestLayout() {
